@@ -40,9 +40,7 @@ app.get('/todos/:id', (req, res) => {
     if (!ObjectID.isValid(id)) {
         return res.status(404).send({
             status: 'FAILED',
-            body: {
-                error: 'id is invalid'
-            }
+            error: 'id is invalid'
         });
     }
 
@@ -54,18 +52,14 @@ app.get('/todos/:id', (req, res) => {
             return res.status(404).send(
                 {
                     status: 'FAILED',
-                    body: {
-                        error: 'todo record not found'
-                    }
+                    error: 'todo record not found'
                 }
             );
         }
         // if todo - send it back
         res.status(200).send({
             status: 'SUCCESS',
-            body: {
-                todo
-            }
+            todo
         });
 
         // error
@@ -73,9 +67,7 @@ app.get('/todos/:id', (req, res) => {
     }).catch((e) => {
         res.status(400).send({
             status: 'FAILED',
-            body: {
-                error: e
-            }
+            error: e
         })
     })
 
