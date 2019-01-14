@@ -34,6 +34,8 @@ var UserSchema = new mongoose.Schema(
     }
 );
 
+/* we overriede one of default mongoose Schema method to our own. 
+toJSON calls when we call method response.send(). So we authomatically modify the response body object*/
 UserSchema.methods.toJSON = function () {
     var user = this;
     var userObject = user.toObject();
@@ -50,6 +52,23 @@ UserSchema.methods.generateAuthToken = function () {
 
     return user.save().then(() => {
         return token;
+    });
+};
+
+UserSchema.statics.findByToken = function (token) {
+    var User = this;
+    var decoded;
+
+    try {
+       decoded = jwt.verify(token, 'abc123');
+    } catch (e) {
+        return Promise.reject('You are not authorized');
+    }
+
+    return User.findOne({
+        '_id': decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
     })
 }
 
