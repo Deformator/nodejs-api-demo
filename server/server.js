@@ -1,5 +1,6 @@
-var express = require('express');
-var bodyPraser = require('body-parser');
+const _ = require('lodash');
+const express = require('express');
+const bodyPraser = require('body-parser');
 const { ObjectID } = require('mongodb');
 
 var { mongoose } = require('./db/mongoose');
@@ -111,6 +112,51 @@ app.delete('/todos/:id', (req, res) => {
                 error: e
             })
         })
+})
+
+app.patch('/todos/:id', (req,res)=>{
+    var id = req.params.id;
+    var body = _.pick(req.body, ['text', 'completed']);
+
+        // validate the id -> not valid? return 404
+        if (!ObjectID.isValid(id)) {
+            return res.status(404).send({
+                status: 'FAILED',
+                error: 'id is invalid'
+            });
+        }
+
+        if(_.isBoolean(body.completed) && body.completed) {
+            body.completedAt = new Date().getTime();
+        } else {
+            body.completed = false;
+            body.completedAt = null;
+        }
+
+        Todo.findByIdAndUpdate(id, {
+            $set: body
+        },
+        {
+            new: true
+        }).then((todo)=>{
+            if(!todo) {
+                return res.status(404).send({
+                    status: 'FAILED',
+                    error: 'todo record not found'
+                }) 
+            }
+
+            res.send({
+                status: 'SUCCESS',
+                todo
+            })
+        }).catch((e)=>{
+            res.status(400).send({
+                status: 'FAILED',
+                error: e
+            })
+        })
+
 })
 
 app.listen(port, () => {
