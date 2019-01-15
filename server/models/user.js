@@ -56,6 +56,18 @@ UserSchema.methods.generateAuthToken = function () {
     });
 };
 
+UserSchema.methods.removeToken = function (token) {
+    var user = this;
+
+   return user.update({
+        $pull: {
+            tokens: {
+                token: token
+            }
+        }
+    })
+};
+
 UserSchema.statics.findByToken = function (token) {
     var User = this;
     var decoded;
@@ -83,7 +95,7 @@ UserSchema.statics.findByCredentials = function (email, password) {
         return new Promise((resolve, reject) => {
             // Use bcrypt.compare to compare password and user.password
             bcrypt.compare(password, user.password, (err, res) => {
-                if(res) {
+                if (res) {
                     resolve(user);
                 } else {
                     reject('Wrong password');
