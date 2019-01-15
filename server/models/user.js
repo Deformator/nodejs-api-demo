@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema(
     {
@@ -60,7 +61,7 @@ UserSchema.statics.findByToken = function (token) {
     var decoded;
 
     try {
-       decoded = jwt.verify(token, 'abc123');
+        decoded = jwt.verify(token, 'abc123');
     } catch (e) {
         return Promise.reject('You are not authorized');
     }
@@ -69,8 +70,25 @@ UserSchema.statics.findByToken = function (token) {
         '_id': decoded._id,
         'tokens.token': token,
         'tokens.access': 'auth'
-    })
-}
+    });
+};
+
+UserSchema.pre('save', function (next) {
+    var user = this;
+
+    if(user.isModified('password')){
+        // user password
+        bcrypt.genSalt(10, (err, salt)=>{
+            bcrypt.hash(user.password, salt, (err, hash)=>{
+                user.password = hash;
+                next();
+            })
+        })
+
+    } else {
+        next()
+    }
+})
 
 var User = mongoose.model('User', UserSchema);
 
