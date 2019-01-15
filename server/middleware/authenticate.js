@@ -14,10 +14,12 @@ var authenticate = (req, res, next) => {
 
         res.send(user);
     }).catch((e)=> {
-        res.status(401).send({
-            status: 'FAILED',
-            error: e
-        });
+        res.status(401).send(
+            // {
+            //     status: 'FAILED',
+            //     error: e
+            // }
+        );
     });
 };
 
