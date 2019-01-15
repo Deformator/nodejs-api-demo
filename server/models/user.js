@@ -14,7 +14,7 @@ var UserSchema = new mongoose.Schema(
             unique: true,
             validate: {
                 validator: validator.isEmail,
-                message: '{VALUE} is not a valid emvail'
+                message: '{VALUE} is not a valid email'
             }
         },
         password: {
@@ -73,13 +73,33 @@ UserSchema.statics.findByToken = function (token) {
     });
 };
 
+UserSchema.statics.findByCredentials = function (email, password) {
+    var User = this;
+    return User.findOne({ email }).then((user) => {
+        if (!user) {
+            return Promise.reject('User does not exist');
+        }
+
+        return new Promise((resolve, reject) => {
+            // Use bcrypt.compare to compare password and user.password
+            bcrypt.compare(password, user.password, (err, res) => {
+                if(res) {
+                    resolve(user);
+                } else {
+                    reject('Wrong password');
+                }
+            })
+        })
+    });
+};
+
 UserSchema.pre('save', function (next) {
     var user = this;
 
-    if(user.isModified('password')){
+    if (user.isModified('password')) {
         // user password
-        bcrypt.genSalt(10, (err, salt)=>{
-            bcrypt.hash(user.password, salt, (err, hash)=>{
+        bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(user.password, salt, (err, hash) => {
                 user.password = hash;
                 next();
             })
